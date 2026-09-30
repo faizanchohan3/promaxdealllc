@@ -30,6 +30,35 @@
     top.addEventListener('click',function(){window.scrollTo({top:0});});
   }
 
+  /* Brand directory: search + A–Z filter */
+  var bSearch=document.getElementById('b-search');
+  if(bSearch){
+    var tiles=[].slice.call(document.querySelectorAll('.brand-tile')),
+        groups=[].slice.call(document.querySelectorAll('.brand-group')),
+        azBtns=[].slice.call(document.querySelectorAll('.az button[data-letter]')),
+        bCount=document.getElementById('b-count'),bEmpty=document.getElementById('b-empty'),
+        letter='';
+    var applyFilter=function(){
+      var q=bSearch.value.trim().toLowerCase(),shown=0;
+      tiles.forEach(function(t){
+        var ok=(!q||t.getAttribute('data-name').indexOf(q)>-1)&&(!letter||t.getAttribute('data-letter')===letter);
+        t.hidden=!ok;if(ok)shown++;
+      });
+      groups.forEach(function(g){g.hidden=!g.querySelector('.brand-tile:not([hidden])');});
+      bEmpty.hidden=shown>0;
+      bCount.textContent=(q||letter)?'Showing '+shown+' of '+tiles.length+' brands':'Showing all '+tiles.length+' brands';
+    };
+    bSearch.addEventListener('input',applyFilter);
+    azBtns.forEach(function(b){
+      b.addEventListener('click',function(){
+        letter=b.getAttribute('data-letter');
+        azBtns.forEach(function(x){x.setAttribute('aria-pressed',String(x===b));});
+        applyFilter();
+      });
+    });
+    applyFilter();
+  }
+
   /* Quote form */
   var f=document.getElementById('quote');
   if(!f)return;
@@ -49,6 +78,8 @@
     };
     pick('q-cat',qs.get('cat'));
     pick('q-type',qs.get('type'));
+    var brand=qs.get('brand'),items=document.getElementById('q-items');
+    if(brand&&items&&!items.value)items.value='Brand: '+brand.slice(0,60)+'\nPart numbers & quantities: ';
   }catch(err){}
 
   var need=['name','company','email','items'];
